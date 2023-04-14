@@ -1,0 +1,53 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install wheel
+          pip install . --upgrade
+
+      - name: Run unit tests
+        run: pytest unit_tests/
+
+  release:
+    needs: [run_tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Configure semantic release
+        run: |
+          pip install python-semantic-release
+          git config user.name "firstprinciples"
+          git config user.email "rcpattison@gmail.com"
+
+      - name: Release
+        run: semantic-release publish
