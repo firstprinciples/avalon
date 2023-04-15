@@ -46,8 +46,10 @@ jobs:
       - name: Configure semantic release
         run: |
           pip install python-semantic-release
-          git config user.name "firstprinciples"
+          git config user.name "Richard Pattison"
           git config user.email "rcpattison@gmail.com"
 
       - name: Release
         run: semantic-release publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
